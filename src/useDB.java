@@ -1,4 +1,6 @@
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 public class useDB {
 
     // اطلاعات اتصال به دیتابیس
@@ -51,8 +53,8 @@ public class useDB {
         }
         return false; // کاربر پیدا نشد
     }
-//ثبت نام
-    public void signin(String name, String number, int cid, String username, String password) {
+//SIGN IN
+public void signin(String name, String number, int cid, String username, String password) {
         Connection connection = null;
         PreparedStatement stmt = null;
 
@@ -85,7 +87,42 @@ public class useDB {
         }
     }
 
-//نمایش فیلم ها
+    //GET USERID
+    public int userid(String username, String password) {
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        ResultSet rset = null;
+        int userId = -1; // مقدار پیش‌فرض در صورتی که هیچ usid یافت نشود
+
+        try {
+            // ایجاد اتصال به پایگاه داده
+            connection = DriverManager.getConnection(connectionUrl);
+
+            String sql = "SELECT usid FROM USERS WHERE username = ? AND upassword = ?";
+            stmt = connection.prepareStatement(sql);
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
+            rset = stmt.executeQuery();
+            if (rset.next()) { // فقط اولین نتیجه را پردازش می‌کنیم
+                userId = rset.getInt("usid");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // بستن استیتمنت و رزولت‌ست و اتصال
+            try {
+                if (rset != null) rset.close();
+                if (stmt != null) stmt.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return userId;
+    }
+//DISPLAY MOVIES
 public void showmovie() {
     Connection connection = null;
     PreparedStatement stmt = null;
@@ -194,7 +231,7 @@ public void showgenreofmovies(){
     }
 
 //   "Display all halls available in the user's city."
-    public void showHalls(String username, String password) {
+    public void showHalls(int usid) {
         Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rset = null;
@@ -202,10 +239,9 @@ public void showgenreofmovies(){
             // ایجاد اتصال به پایگاه داده
             connection = DriverManager.getConnection(connectionUrl);
 
-            String sql = "SELECT HALL.hid, HALL.hname FROM USERS INNER JOIN CITY ON USERS.cid = CITY.cid INNER JOIN HALL ON CITY.cid = HALL.cid WHERE USERS.username = ? AND USERS.upassword = ?";
+            String sql = "SELECT HALL.hid, HALL.hname FROM USERS INNER JOIN CITY ON USERS.cid = CITY.cid INNER JOIN HALL ON CITY.cid = HALL.cid WHERE USERS.usid = ?";
             stmt = connection.prepareStatement(sql);
-            stmt.setString(1, username);
-            stmt.setString(2, password);
+            stmt.setInt(1, usid);
             System.out.println("hid\tname\n" +
                     "---------------------------------------------");
 
@@ -229,5 +265,47 @@ public void showgenreofmovies(){
         }
     }
 
+public void createticket(int tid,int usid,LocalDate mdate,LocalTime mtime,int hid,int mid,int fee,int seatid){
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    ResultSet rset = null;
+    try {
+        // ایجاد اتصال به پایگاه داده
+        connection = DriverManager.getConnection(connectionUrl);
+
+        String sql = "INSERT INTO TICKET (tid, usid, mdate, mtime, hid, mid, fee, seatid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        stmt = connection.prepareStatement(sql);
+        stmt.setInt(1, tid);
+        stmt.setInt(2, usid);
+        stmt.setDate(3, java.sql.Date.valueOf(mdate));
+        stmt.setTime(4, Time.valueOf(mtime));
+        stmt.setInt(5, hid);
+        stmt.setInt(6, mid);
+        stmt.setInt(7, fee);
+        stmt.setInt(8, seatid);
+
+        int rowsInserted = stmt.executeUpdate();
+        if (rowsInserted > 0) {
+            System.out.println("The ticket was registered successfully.");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        // بستن استیتمنت و رزولت‌ست و اتصال
+        try {
+            if (rset != null) rset.close();
+            if (stmt != null) stmt.close();
+            if (connection != null) connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+//    int z=db.userid("pooya","parva");
+//    LocalTime time = LocalTime.of(14, 30, 0);
+//    LocalDate date = LocalDate.of(2024, 3, 3);
+//        db.createticket(1,z,date,time,1000,102,85000,2);
+//
 
 }
