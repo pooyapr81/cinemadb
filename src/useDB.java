@@ -264,7 +264,45 @@ public void showgenreofmovies(){
             }
         }
     }
+    //GET TID
+    public int gettid(int hid, int mid, String mdate, String mtime) {
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        ResultSet rset = null;
+        int TId = -1; // مقدار پیش‌فرض در صورتی که هیچ usid یافت نشود
 
+        try {
+            // ایجاد اتصال به پایگاه داده
+            connection = DriverManager.getConnection(connectionUrl);
+
+            // استفاده از تبدیل نوع داده در SQL
+            String sql = "SELECT numbertk FROM numberofticket WHERE hid = ? AND movieid = ? AND ndate = ? AND ntime = ?";
+            stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, hid);
+            stmt.setInt(2, mid);
+            stmt.setString(3, mdate);
+            stmt.setString(4, mtime);
+            rset = stmt.executeQuery();
+            if (rset.next()) { // فقط اولین نتیجه را پردازش می‌کنیم
+                TId = rset.getInt("numbertk");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // بستن استیتمنت و رزولت‌ست و اتصال
+            try {
+                if (rset != null) rset.close();
+                if (stmt != null) stmt.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return TId;
+    }
+
+    //register ticket
 public void createticket(int tid,int usid,LocalDate mdate,LocalTime mtime,int hid,int mid,int fee,int seatid){
     Connection connection = null;
     PreparedStatement stmt = null;
@@ -301,11 +339,50 @@ public void createticket(int tid,int usid,LocalDate mdate,LocalTime mtime,int hi
         }
     }
 }
+//DISPLAY CHAIR
+ public void showchairs(int hid) {
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        ResultSet rset = null;
+        try {
+            // ایجاد اتصال به پایگاه داده
+            connection = DriverManager.getConnection(connectionUrl);
 
+            String sql = "SELECT CHAIR.chid,CHAIR.crow,CHAIR.ccolumn FROM CHAIR WHERE CHAIR.hid = ? AND CHAIR.cstatus='T'";
+            stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, hid);
+            System.out.println("chairid\trow\tcolumn\n" +
+                    "---------------------------------------------");
+
+            rset = stmt.executeQuery();
+            while (rset.next()) {
+                System.out.println( rset.getInt("chid") +
+                        "\t " + rset.getInt("crow") +
+                        "\t " + rset.getInt("ccolumn")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // بستن استیتمنت و رزولت‌ست و اتصال
+            try {
+                if (rset != null) rset.close();
+                if (stmt != null) stmt.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 //    int z=db.userid("pooya","parva");
 //    LocalTime time = LocalTime.of(14, 30, 0);
 //    LocalDate date = LocalDate.of(2024, 3, 3);
 //        db.createticket(1,z,date,time,1000,102,85000,2);
 //
-
+//LocalTime time = LocalTime.of(14, 00, 00);
+//    String t=convertTime(time);
+//    LocalDate date = LocalDate.of(2024, 06, 22);
+//    String s=convert(date);
+//    int z= db.gettid(1000,102,s,t);
+//   System.out.println(z);
 }

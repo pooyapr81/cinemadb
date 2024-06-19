@@ -2,7 +2,7 @@ import java.sql.*;
 import java.util.Scanner;
 import java.time.LocalDate;
 import java.time.LocalTime;
-
+import java.time.format.DateTimeFormatter;
 public class Main {
     public static void main(String[] args) {
         String username="";
@@ -38,4 +38,13 @@ public class Main {
 //            db.signin(name,number,cid,username,password);
 //        }
     }
+    public static String convert(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        return date.format(formatter);
+    }
+    public static String convertTime(LocalTime time) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        return time.format(formatter);
+    }
+
 }
