@@ -374,10 +374,81 @@ public void createticket(int tid,int usid,LocalDate mdate,LocalTime mtime,int hi
             }
         }
     }
-//    int z=db.userid("pooya","parva");
-//    LocalTime time = LocalTime.of(14, 30, 0);
-//    LocalDate date = LocalDate.of(2024, 3, 3);
-//        db.createticket(1,z,date,time,1000,102,85000,2);
+
+    //DISPLAY USERS TICKET
+public void showmyticket(int usid){
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    ResultSet rset = null;
+    try {
+        // ایجاد اتصال به پایگاه داده
+        connection = DriverManager.getConnection(connectionUrl);
+
+        String sql = "SELECT TICKET.tid,TICKET.mdate,TICKET.mtime,MOVIE.moname,HALL.hname,HALL.haddress FROM TICKET INNER JOIN MOVIE on TICKET.mid=MOVIE.mid INNER JOIN HALL on TICKET.hid=HALL.hid WHERE TICKET.usid = ? ";
+        stmt = connection.prepareStatement(sql);
+        stmt.setInt(1, usid);
+        System.out.println("id\tdate\ttime\tmovie\thall\thall address\n" +
+                "---------------------------------------------");
+
+        rset = stmt.executeQuery();
+        while (rset.next()) {
+            System.out.println( rset.getInt("tid") +
+                    "\t " + rset.getDate("mdate") +
+                    "\t " + rset.getTime("mtime")+
+                    "\t " + rset.getString("moname")+
+                    "\t " + rset.getString("hname")+
+                    "\t " + rset.getString("haddress")
+            );
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        // بستن استیتمنت و رزولت‌ست و اتصال
+        try {
+            if (rset != null) rset.close();
+            if (stmt != null) stmt.close();
+            if (connection != null) connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public void deletetk(int tid,int usid){
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    ResultSet rset = null;
+    try {
+        // ایجاد اتصال به پایگاه داده
+        connection = DriverManager.getConnection(connectionUrl);
+
+        String sql = "DELETE FROM TICKET WHERE TICKET.tid=? AND TICKET.usid=?";
+        stmt = connection.prepareStatement(sql);
+        stmt.setInt(1, tid);
+        stmt.setInt(2, usid);
+        int rowsInserted = stmt.executeUpdate();
+        if (rowsInserted > 0) {
+            System.out.println("The ticket was DELETED successfully.");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        // بستن استیتمنت و رزولت‌ست و اتصال
+        try {
+            if (rset != null) rset.close();
+            if (stmt != null) stmt.close();
+            if (connection != null) connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+ //   int z=db.userid("pooya","parva");
+//    LocalTime time = LocalTime.of(14, 00, 0);
+//    LocalDate date = LocalDate.of(2024, 06, 22);
+//        db.createticket(2,z,date,time,1000,102,85000,10);
 //
 //LocalTime time = LocalTime.of(14, 00, 00);
 //    String t=convertTime(time);
