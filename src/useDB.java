@@ -274,7 +274,7 @@ public class useDB {
     }
 
     //GET NUMBER OF TICKET
-    public int gettid(int hid, int mid, String mdate, String mtime) {
+    public int gettid(int showtimeid) {
         Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rset = null;
@@ -285,12 +285,9 @@ public class useDB {
             connection = DriverManager.getConnection(connectionUrl);
 
             // استفاده از تبدیل نوع داده در SQL
-            String sql = "SELECT numbertk FROM numberofticket WHERE hid = ? AND movieid = ? AND ndate = ? AND ntime = ?";
+            String sql = "SELECT numbertk FROM numberofticket WHERE ct = ? ";
             stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, hid);
-            stmt.setInt(2, mid);
-            stmt.setString(3, mdate);
-            stmt.setString(4, mtime);
+            stmt.setInt(1, showtimeid);
             rset = stmt.executeQuery();
             if (rset.next()) { // فقط اولین نتیجه را پردازش می‌کنیم
                 TId = rset.getInt("numbertk");
@@ -312,7 +309,7 @@ public class useDB {
     }
 
     //register ticket
-    public void createticket(int tid, int usid, LocalDate mdate, LocalTime mtime, int hid, int mid, int fee, int seatid) {
+    public void createticket(int tid, int usid, int showtimeid, int fee, int seatid) {
         Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rset = null;
@@ -320,16 +317,13 @@ public class useDB {
             // ایجاد اتصال به پایگاه داده
             connection = DriverManager.getConnection(connectionUrl);
 
-            String sql = "INSERT INTO TICKET (tid, usid, mdate, mtime, hid, mid, fee, seatid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO TICKET (tid, usid, showtimeid, fee, seatid) VALUES (?, ?, ?, ?, ?)";
             stmt = connection.prepareStatement(sql);
             stmt.setInt(1, tid);
             stmt.setInt(2, usid);
-            stmt.setDate(3, java.sql.Date.valueOf(mdate));
-            stmt.setTime(4, Time.valueOf(mtime));
-            stmt.setInt(5, hid);
-            stmt.setInt(6, mid);
-            stmt.setInt(7, fee);
-            stmt.setInt(8, seatid);
+            stmt.setInt(3, showtimeid);
+            stmt.setInt(4, fee);
+            stmt.setInt(5, seatid);
 
             int rowsInserted = stmt.executeUpdate();
             if (rowsInserted > 0) {
@@ -350,7 +344,7 @@ public class useDB {
     }
 
     //DISPLAY CHAIR
-    public void showchairs(int hid) {
+    public void showchairs(int hid ,int showtime) {
         Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rset = null;
@@ -358,9 +352,10 @@ public class useDB {
             // ایجاد اتصال به پایگاه داده
             connection = DriverManager.getConnection(connectionUrl);
 
-            String sql = "SELECT CHAIR.chid,CHAIR.crow,CHAIR.ccolumn FROM CHAIR WHERE CHAIR.hid = ? AND CHAIR.cstatus='T'";
+            String sql = "SELECT CHAIR.chid,CHAIR.crow,CHAIR.ccolumn FROM CHAIR inner join chairstatus ct on CHAIR.chid=ct.chairid  WHERE CHAIR.hid = ? AND ct.movieshowtimeid = ? AND ct.cstatus='T'";
             stmt = connection.prepareStatement(sql);
             stmt.setInt(1, hid);
+            stmt.setInt(2, showtime);
             System.out.println("chairid\trow\tcolumn\n" +
                     "---------------------------------------------");
 
@@ -394,20 +389,21 @@ public class useDB {
             // ایجاد اتصال به پایگاه داده
             connection = DriverManager.getConnection(connectionUrl);
 
-            String sql = "SELECT TICKET.tid,TICKET.mdate,TICKET.mtime,MOVIE.moname,HALL.hname,HALL.haddress FROM TICKET INNER JOIN MOVIE on TICKET.mid=MOVIE.mid INNER JOIN HALL on TICKET.hid=HALL.hid WHERE TICKET.usid = ? ";
+            String sql = "SELECT TICKET.tid,nt.ndate,nt.ntime,m.moname,nt.hname,HALL.haddress,TICKET.seatid FROM TICKET INNER JOIN numberofticket nt on TICKET.showtimeid=nt.ct inner join MOVIE m on m.mid=nt.movieid inner join HALL on HALL.hid=nt.hid WHERE TICKET.usid = ? ";
             stmt = connection.prepareStatement(sql);
             stmt.setInt(1, usid);
-            System.out.println("id\tdate\ttime\tmovie\thall\thall address\n" +
-                    "---------------------------------------------");
+            System.out.println("id\tdate\ttime\tmovie\thall\thall address\tchair\n" +
+                    "--------------------------------------------------------------");
 
             rset = stmt.executeQuery();
             while (rset.next()) {
                 System.out.println(rset.getInt("tid") +
-                        "\t " + rset.getDate("mdate") +
-                        "\t " + rset.getTime("mtime") +
+                        "\t " + rset.getDate("ndate") +
+                        "\t " + rset.getTime("ntime") +
                         "\t " + rset.getString("moname") +
                         "\t " + rset.getString("hname") +
-                        "\t " + rset.getString("haddress")
+                        "\t " + rset.getString("haddress")+
+                        "\t " + rset.getString("seatid")
                 );
             }
         } catch (SQLException e) {
@@ -465,16 +461,17 @@ public class useDB {
             // ایجاد اتصال به پایگاه داده
             connection = DriverManager.getConnection(connectionUrl);
 
-            String sql = "SELECT nt.ndate,nt.ntime FROM numberofticket nt WHERE nt.hid=? AND nt.movieid=?";
+            String sql = "SELECT nt.ct, nt.ndate,nt.ntime FROM numberofticket nt WHERE nt.hid=? AND nt.movieid=?";
             stmt = connection.prepareStatement(sql);
             stmt.setInt(1, hid);
             stmt.setInt(2, mid);
-            System.out.println("date\ttime\n" +
+            System.out.println("number\tdate\ttime\n" +
                     "---------------------------------------------");
 
             rset = stmt.executeQuery();
             while (rset.next()) {
-                System.out.println(rset.getDate("ndate") +
+                System.out.println(rset.getInt("ct") +
+                        "\t"  + rset.getDate("ndate") +
                         "\t " + rset.getTime("ntime")
                 );
             }
@@ -492,6 +489,43 @@ public class useDB {
         }
     }
 
+    public boolean checkhall(int hid ,int showtime) {
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        ResultSet rset = null;
+        try {
+            // ایجاد اتصال به پایگاه داده
+            connection = DriverManager.getConnection(connectionUrl);
+
+            // ایجاد استیتمنت و اجرای کوئری با استفاده از پارامترها
+            String sql = "SELECT 1 FROM CHAIR inner join chairstatus ct on CHAIR.chid=ct.chairid  WHERE CHAIR.hid = ? AND ct.movieshowtimeid = ? AND ct.cstatus='T'";
+            stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, hid);
+            stmt.setInt(2, showtime);
+
+            // اجرای کوئری
+            rset = stmt.executeQuery();
+
+            if (rset.next()) {
+                return true; // صندلی خالی موجود است
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // بستن منابع
+            try {
+                if (rset != null) rset.close();
+                if (stmt != null) stmt.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return false; // صندلی خالی موجود نیست
+    }
+
+
+
     //   int z=db.userid("pooya","parva");
 //    LocalTime time = LocalTime.of(14, 00, 0);
 //    LocalDate date = LocalDate.of(2024, 06, 22);
@@ -504,3 +538,43 @@ public class useDB {
 //    int z= db.gettid(1000,102,s,t);
 //   System.out.println(z);
 }
+
+
+
+
+//public void createticket(int tid, int usid, LocalDate mdate, LocalTime mtime, int hid, int mid, int fee, int seatid) {
+//    Connection connection = null;
+//    PreparedStatement stmt = null;
+//    ResultSet rset = null;
+//    try {
+//        // ایجاد اتصال به پایگاه داده
+//        connection = DriverManager.getConnection(connectionUrl);
+//
+//        String sql = "INSERT INTO TICKET (tid, usid, mdate, mtime, hid, mid, fee, seatid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+//        stmt = connection.prepareStatement(sql);
+//        stmt.setInt(1, tid);
+//        stmt.setInt(2, usid);
+//        stmt.setDate(3, java.sql.Date.valueOf(mdate));
+//        stmt.setTime(4, Time.valueOf(mtime));
+//        stmt.setInt(5, hid);
+//        stmt.setInt(6, mid);
+//        stmt.setInt(7, fee);
+//        stmt.setInt(8, seatid);
+//
+//        int rowsInserted = stmt.executeUpdate();
+//        if (rowsInserted > 0) {
+//            System.out.println("The ticket was registered successfully.");
+//        }
+//    } catch (SQLException e) {
+//        e.printStackTrace();
+//    } finally {
+//        // بستن استیتمنت و رزولت‌ست و اتصال
+//        try {
+//            if (rset != null) rset.close();
+//            if (stmt != null) stmt.close();
+//            if (connection != null) connection.close();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//}
