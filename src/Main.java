@@ -22,9 +22,9 @@ public class Main {
             password = scanner.next();
             boolean ck = db.checkuser(username, password);
             if (ck) {
-                System.out.println("done");
+                System.out.println("wellcom!! ");
             } else {
-                System.out.println("not done");
+                System.out.println("username or password was incorrect");
             }
         } else if (enter == 2) {   // ثبت نام کاربر
             System.out.println("enter name :");
@@ -92,6 +92,7 @@ public class Main {
                 }
             }
             System.out.println("total amount:" + numberofticket * fee);  // مجموع مبلغ
+
         } else { //نمایش بلیط های کاربر
             System.out.println("1.wallet\n2.my ticket");
             int wm = scanner.nextInt();
