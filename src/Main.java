@@ -96,8 +96,15 @@ public class Main {
         } else { //نمایش بلیط های کاربر
             System.out.println("1.wallet\n2.my ticket");
             int wm = scanner.nextInt();
-            if (wm == 1) {
-
+            if (wm == 1) {   // show and add balance
+                db.balanceofwallet(userid);
+                System.out.println("Do you want to increase your account balance? ");
+                String ib=scanner.next();
+                if(ib.equals("yes")){
+                    System.out.println("enter the price:");
+                    int price=scanner.nextInt();
+                    db.addbalance(userid,price);
+                }
             } else if (wm == 2) {
                 db.showmyticket(userid);
                 System.out.println("delete ticket?(yes or no)");
@@ -112,7 +119,6 @@ public class Main {
                 System.out.println("good by!!");
             }
         }
-
 
     }
 

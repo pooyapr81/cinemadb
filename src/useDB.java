@@ -524,6 +524,65 @@ public class useDB {
         return false; // صندلی خالی موجود نیست
     }
 
+    public void balanceofwallet(int usid) {
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        ResultSet rset = null;
+        try {
+            // ایجاد اتصال به پایگاه داده
+            connection = DriverManager.getConnection(connectionUrl);
+
+            String sql = "SELECT w.balance FROM USERS u INNER JOIN WALLET w ON u.wid=w.wid WHERE u.usid=?";
+            stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, usid);
+            System.out.println("balance\n" +
+                    "--------------------------------------------------------------");
+
+            rset = stmt.executeQuery();
+            while (rset.next()) {
+                System.out.println(rset.getInt("balance")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // بستن استیتمنت و رزولت‌ست و اتصال
+            try {
+                if (rset != null) rset.close();
+                if (stmt != null) stmt.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void addbalance(int usid,int price) {
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        try {
+            // ایجاد اتصال به پایگاه داده
+            connection = DriverManager.getConnection(connectionUrl);
+
+            String sql = "update WALLET set balance=balance+? from USERS u inner join WALLET w on u.wid=w.wid where u.usid=?";
+            stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, price);
+            stmt.setInt(2, usid);
+
+            int rowsAffected = stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // بستن استیتمنت و رزولت‌ست و اتصال
+            try {
+                if (stmt != null) stmt.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     //   int z=db.userid("pooya","parva");
 //    LocalTime time = LocalTime.of(14, 00, 0);
 //    LocalDate date = LocalDate.of(2024, 06, 22);
